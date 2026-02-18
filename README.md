@@ -1,17 +1,29 @@
-# Nudge
+# Create T3 App
 
-A student only accountability platform that pairs college students for live, video-call based study sessions to combat procrastionation and build consistent study habits utilizing the pomodoro method.
+This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
-## Core Feeatures
-**Matching Mode:** 1-1 Focus Sessions**
-Students are paired with other verified students (.edu emails) with a shared timer and accountability mechanics. both partcipants commit to a session length, stay on camera and keep each other honest. The shared structures creates a social pressure to stay focused.
-* Real time video calls via WebRTC
-* Smart matching based on availiability and session preferences
-* Shared session timer with synchronized breaks
-* Accept / decline with queue based matchmaking
-<br><br>
-**Solo Mode:** AI CV Powered Tracking
-For students who prefer to study alone, solo mode uses CV to focus in real time. The system runs entirely in the browser, no data leaves the device during this phase.
+## What's next? How do I make an app with this?
 
-***to be continued***
+We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
 
+If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+
+- [Next.js](https://nextjs.org)
+- [NextAuth.js](https://next-auth.js.org)
+- [Prisma](https://prisma.io)
+- [Drizzle](https://orm.drizzle.team)
+- [Tailwind CSS](https://tailwindcss.com)
+- [tRPC](https://trpc.io)
+
+## Learn More
+
+To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+
+- [Documentation](https://create.t3.gg/)
+- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+
+You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+
+## How do I deploy this?
+
+Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
