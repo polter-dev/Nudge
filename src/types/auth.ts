@@ -23,6 +23,8 @@ Create an interface for a user
     loading: if a state is loading nothing should be processed at this gien time
     user? if a user is logged in then they'll have access to their user interface
         this allows for people to browse the site without having an account   
+
+    if these fields change please tell me (polter) before hand!
 */
 export interface AuthState {
     loading: boolean;
