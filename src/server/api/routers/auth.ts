@@ -15,16 +15,18 @@ export const authRouter = createTRPCRouter({
         email: z.string(),
         password: z.string()
     }))
+    
     .mutation(async ({ ctx, input }) => {
-        //TODO: call supabase to create user and profile
-        return /*supa base function */({
-            data: {
-            firstName: input.firstName, 
-            lastName: input.lastName,
-            userName: input.userName,
+        const res = await ctx.supabase.auth.signUp({
             email: input.email,
             password: input.password
-            },
-        }); 
+        })
+        if (res.error)
+            throw new Error("Signup Failed")
+
+        /*
+        TO DO:
+        call supabase and insert rows into profiles table
+        */
     })
 });
