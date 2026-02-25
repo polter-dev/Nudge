@@ -22,7 +22,7 @@ export const sessionsRouter = createTRPCRouter({
         */
     }))
     
-    .query (async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
         /*
         TO DO:
         - Call supabase and insert rows into sessions table
