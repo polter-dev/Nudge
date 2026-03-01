@@ -21,12 +21,28 @@ export const authRouter = createTRPCRouter({
             email: input.email,
             password: input.password
         })
-        if (res.error)
+
+        if (res.error || !res.data.user)
             throw new Error("Signup Failed")
 
-        /*
-        TO DO:
-        call supabase and insert rows into profiles table
-        */
+
+       // access user id -> res.data.user.id;
+       const { error: profileError } = await ctx.supabase 
+       .from('profiles')
+       .insert({
+            id: res.data.user.id,
+            username: input.userName,
+            first_name: input.firstName,
+            last_name: input.lastName,
+            email: input.email,
+            is_student: false, // set to false since it needs to be auth'd
+            university: null,
+            created_at: res.data.user.created_at, // this may not work, not entirely sure
+            updated_at: res.data.user.updated_at // same thing for this 
+       })
+       if (profileError)
+            throw new Error("Creating Profile Failed")
+
+       return {success: true, userId: res.data.user.id}
     })
 });
