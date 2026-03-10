@@ -15,7 +15,6 @@ export const authRouter = createTRPCRouter({
         email: z.string(),
         password: z.string()
     }))
-    
     .mutation(async ({ ctx, input }) => {
         const res = await ctx.supabase.auth.signUp({
             email: input.email,
@@ -44,5 +43,21 @@ export const authRouter = createTRPCRouter({
             throw new Error("Creating Profile Failed")
 
        return {success: true, userId: res.data.user.id}
+    }),
+    login: publicProcedure
+    .input(z.object({
+        email: z.string().email(),
+        password: z.string()
+    }))
+    .mutation(async ({ ctx, input }) => {
+        const res = await ctx.supabase.auth.signInWithPassword({
+            email: input.email,
+            password: input.password
+        });
+
+        if (res.error || !res.data.user)
+            throw new Error("Login Failed");
+
+        return { success: true, userId: res.data.user.id };
     })
 });
