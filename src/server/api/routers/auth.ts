@@ -4,7 +4,7 @@ using supabase
 */
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure
@@ -44,7 +44,7 @@ export const authRouter = createTRPCRouter({
 
        return {success: true, userId: res.data.user.id}
     }),
-    
+
     login: publicProcedure
     .input(z.object({
         email: z.string().email(),
@@ -60,5 +60,15 @@ export const authRouter = createTRPCRouter({
             throw new Error("Login Failed");
 
         return { success: true, userId: res.data.user.id };
+    }),
+
+    logout: protectedProcedure
+    .mutation(async({ ctx }) => {
+        const res = await ctx.supabase.auth.signOut()
+
+        if (res.error)
+            throw new Error("No valid user session!");
+
+        return {success: true, confirmation: "Signed Out"};
     })
 });
