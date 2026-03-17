@@ -44,6 +44,7 @@ export const authRouter = createTRPCRouter({
 
        return {success: true, userId: res.data.user.id}
     }),
+    
     login: publicProcedure
     .input(z.object({
         email: z.string().email(),
