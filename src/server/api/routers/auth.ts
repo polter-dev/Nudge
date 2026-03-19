@@ -47,7 +47,7 @@ export const authRouter = createTRPCRouter({
 
     login: publicProcedure
     .input(z.object({
-        email: z.string().email(),
+        email: z.string().email().refine((email) => email.endsWith(".edu")),
         password: z.string()
     }))
     .mutation(async ({ ctx, input }) => {
@@ -70,5 +70,19 @@ export const authRouter = createTRPCRouter({
             throw new Error("No valid user session!");
 
         return {success: true, confirmation: "Signed Out"};
+    }),
+
+    forgotPasswordByEmail: publicProcedure
+    .input(z.object({
+        email:z.string().email().refine((email) => email.endsWith(".edu"))
+    }))
+    .mutation(async({ ctx, input }) => {
+        const res = await ctx.supabase.auth.resetPasswordForEmail(input.email, {
+            redirectTo: 'https://example.com/update-password' 
+        }) /* THIS NEEDS TO BE UPDATED ONCE THE DOMAIN IS PUBLISHED*/
+        if (res.error)
+            throw new Error("Something Went Wrong!");
+
+        return {success: true};
     })
 });
