@@ -12,7 +12,7 @@ export const authRouter = createTRPCRouter({
         firstName: z.string(), 
         lastName: z.string(),
         userName: z.string(),
-        email: z.string(),
+        email: z.string().email().refine((email) => email.endsWith(".edu")),
         password: z.string()
     }))
     .mutation(async ({ ctx, input }) => {
