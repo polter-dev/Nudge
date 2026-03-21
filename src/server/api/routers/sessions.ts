@@ -11,7 +11,7 @@ export const sessionsRouter = createTRPCRouter({
     .input(z.object({ 
 
         //NEEDS TO BE CHANGED TO ACTUAL MODES AND STATUSES ONCE FINALIZED
-        mode: z.enum(["mode1", "mode2"]),
+        mode: z.enum(["solo", "duo"]),
 
         //COULD ALSO BE CHANGED
         status: z.enum(["active", "ended"]), //potentially change to z.enum(["status1", "status2"])
