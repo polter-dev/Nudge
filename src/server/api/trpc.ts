@@ -11,7 +11,8 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "~/server/db";
-import { supabase } from "~/server/supabase";
+import { supabase } from "../supabase"
+
 
 /**
  * 1. CONTEXT
@@ -106,6 +107,11 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+
+/*
+Creating logic handling user sessions logging out if demanded using timingMiddleware
+*/
 
 const authUserCheck = t.middleware(async ({ next, ctx }) => {
   const user = await ctx.supabase.auth.getUser() // get the user
