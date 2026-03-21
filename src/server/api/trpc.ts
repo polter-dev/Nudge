@@ -106,3 +106,16 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+const authUserCheck = t.middleware(async ({ next, ctx }) => {
+  const user = await ctx.supabase.auth.getUser() // get the user
+
+  if (user.error)
+    throw new Error( "No user at this moment!");
+
+  const res = await next({ctx: { userObj: user.data.user }}); //passes the actual user object 
+
+  return res;
+});
+
+export const protectedProcedure = t.procedure.use(timingMiddleware).use(authUserCheck);

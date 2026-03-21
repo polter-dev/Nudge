@@ -125,7 +125,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/deandrebailey/Downloads/Repositories/Nudge/generated/prisma",
+      "value": "/Users/deandrebailey/Repositories/Nudge/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -139,7 +139,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/deandrebailey/Downloads/Repositories/Nudge/prisma/schema.prisma",
+    "sourceFilePath": "/Users/deandrebailey/Repositories/Nudge/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
