@@ -2,8 +2,6 @@
     TO DO:
     Ask if we want to track when they joined the queue and how long they were in the queue for analytics purposes
     Potentially add a procedure to get the current queue status or the user's position in the queue
-    Potentially need some input to identify which queue or session they want to leave if there are multiple types
-    Verify there is no queue for solo sessions since they can just create a session without joining the queue
 */
 
 import { z } from "zod";
@@ -20,16 +18,19 @@ export const queueRouter = createTRPCRouter({
 
         const currentUser = ctx.userObj; //accessing user form the context
 
+        //make sure user is not already in the queue - maybeSingle will return null if no entry is found instead of throwing an error, which is what we want in this case
         const {data: queueEntry, error} = await ctx.supabase
             .from('live_queue')
             .select('id')
             .eq('user_id', currentUser.id) 
-            .single();
+            .maybeSingle(); 
         
+        //handle potential error from supabase query
         if (queueEntry) {
             console.log("User is already in the queue with entry:", queueEntry);
             throw new Error("User is already in the queue");
         }
+
 
         const {error: joinError} = await ctx.supabase
             .from('live_queue')
@@ -37,6 +38,7 @@ export const queueRouter = createTRPCRouter({
                 user_id: currentUser.id,
                 planned_duration_minutes: input.planned_duration_minutes,
                 entered_at: new Date().toISOString() // assuming you want to track when they joined
+                // NOTE: If you want to track time use current time minus entered_at to calculate how long they've been in the queue.
             });
 
             if (joinError) {
@@ -70,7 +72,5 @@ export const queueRouter = createTRPCRouter({
 
         return { message: "Successfully left the queue" }
     }),
-
-    //potentially add a procedure to get the current queue status or the user's position in the queue
 
 });
