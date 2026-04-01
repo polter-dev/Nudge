@@ -8,25 +8,26 @@ import { createTRPCRouter, publicProcedure, protectedProcedure} from "~/server/a
 
 export const sessionsRouter = createTRPCRouter({
     create: protectedProcedure
-    .input(z.object({ 
-
-        //NEEDS TO BE CHANGED TO ACTUAL MODES AND STATUSES ONCE FINALIZED
-        mode: z.enum(["solo", "duo"]),
-
-        //COULD ALSO BE CHANGED
-        status: z.enum(["active", "ended"]), //potentially change to z.enum(["status1", "status2"])
-
-        planned_duration_minutes: z.number().int().positive(),
-        matchedUsers: z.array(z.object({
-            userId: z.string().uuid(),
-            matchedWaitTimeSeconds: z.number().int().nonnegative().optional()
-        })).min(1)
-
-        /*id (UUID): database handles generating unique IDs
-          same with created_at and ended_at should be generated
-        */
-
-    }))
+    .input(z.discriminatedUnion("mode", [
+        z.object({
+            mode: z.literal("solo"),
+            planned_duration_minutes: z.number().int().positive(),
+            status: z.enum(["active", "ended"]),
+            matchedUsers: z.array(z.object({
+                userId: z.string().uuid(),
+                matchedWaitTimeSeconds: z.number().int().nonnegative().optional()
+            })).length(1) //fails if there are not exactly 1 user in the array, which is what we want for solo sessions
+        }),
+        z.object({
+            mode: z.literal("duo"),
+            planned_duration_minutes: z.number().int().positive(),
+            status: z.enum(["active", "ended"]),
+            matchedUsers: z.array(z.object({
+                userId: z.string().uuid(),
+                matchedWaitTimeSeconds: z.number().int().nonnegative().optional()
+            })).length(2) //fails if there are not exactly 2 users in the array, which is what we want for duo sessions
+        }),
+    ]))
     
     .mutation(async ({ ctx, input }) => {
 
