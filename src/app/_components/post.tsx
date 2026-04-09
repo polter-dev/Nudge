@@ -5,7 +5,10 @@ import { useState } from "react";
 import { api } from "~/trpc/react";
 
 export function LatestPost() {
-  const [latestPost] = api.post.getLatest.useSuspenseQuery();
+  const { data: latestPost, isError, isPending } = api.post.getLatest.useQuery(
+    undefined,
+    { retry: false },
+  );
 
   const utils = api.useUtils();
   const [name, setName] = useState("");
@@ -15,6 +18,30 @@ export function LatestPost() {
       setName("");
     },
   });
+
+  if (isPending) {
+    return (
+      <div className="w-full max-w-xs">
+        <p className="text-white/70">Loading posts…</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="w-full max-w-xs rounded-xl bg-white/10 p-4 text-sm text-white/90">
+        <p className="font-semibold">Database not reachable</p>
+        <p className="mt-2 text-white/70">
+          Start PostgreSQL (see <code className="text-white">DATABASE_URL</code> in{" "}
+          <code className="text-white">.env</code>), or open the session UI at{" "}
+          <a href="/session/partner/active" className="underline">
+            /session/partner/active
+          </a>
+          .
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-xs">

@@ -1,13 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
+import { env } from "~/env";
 
-//checks if the url / key is valid 
-if (!process.env.SUPABASE_URL)
-    throw new Error("String was not passed(url)\n");
-if (!process.env.SUPABASE_ANON_KEY)
-    throw new Error("String was not passed(key)\n");       
-
-export const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-)
+export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);

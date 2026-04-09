@@ -3,4 +3,15 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: var(--font-cs-gordon), Georgia, serif;
+
+  /* Nudge brand tokens — light theme */
+  --color-session-green: #E8F5E9;
+  --color-session-amber: #FBE3A1;
+  --color-task-done: #D1D1D1;
+}
+
+/* Prevent body scroll — session screen is a fixed full-height layout */
+body {
+  overflow: hidden;
 }

@@ -6,7 +6,11 @@ import { api, HydrateClient } from "~/trpc/server";
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
 
-  void api.post.getLatest.prefetch();
+  try {
+    await api.post.getLatest.prefetch();
+  } catch {
+    /* Prefetch fails when PostgreSQL is unreachable — page still renders; LatestPost uses client query + error state */
+  }
 
   return (
     <HydrateClient>
