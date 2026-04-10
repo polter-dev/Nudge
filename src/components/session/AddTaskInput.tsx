@@ -70,7 +70,7 @@ export function AddTaskInput({ onAdd }: AddTaskInputProps) {
         </button>
         <div
           aria-hidden="true"
-          className="h-9 w-9 cursor-not-allowed rounded-full bg-zinc-300 opacity-50"
+          className="h-9 w-9 cursor-not-allowed rounded-full bg-zinc-300 opacity-50 dark:bg-[#3F3F46]"
         />
       </div>
     );
@@ -86,7 +86,7 @@ export function AddTaskInput({ onAdd }: AddTaskInputProps) {
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={handleTitleKeyDown}
         placeholder="Add a new task..."
-        className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 outline-none transition-colors focus:border-green-400 focus:ring-1 focus:ring-green-400"
+        className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 outline-none transition-colors focus:border-green-400 focus:ring-1 focus:ring-green-400 dark:border-[#3F3F46] dark:bg-[#27272A] dark:text-[#F4F4F5] dark:placeholder-[#A1A1AA]"
         aria-label="New task title"
       />
 
@@ -100,14 +100,14 @@ export function AddTaskInput({ onAdd }: AddTaskInputProps) {
         </button>
         <div
           aria-hidden="true"
-          className="flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-zinc-300 opacity-50"
+          className="flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-zinc-300 opacity-50 dark:bg-[#3F3F46]"
         />
       </div>
 
       {/* Row 2: estimated minutes */}
       {showMinutes && (
         <div className="flex items-center gap-2 pl-1">
-          <label className="shrink-0 text-xs text-zinc-500">Est. minutes:</label>
+          <label className="shrink-0 text-xs text-zinc-500 dark:text-[#A1A1AA]">Est. minutes:</label>
           <input
             ref={minutesRef}
             type="number"
@@ -116,7 +116,7 @@ export function AddTaskInput({ onAdd }: AddTaskInputProps) {
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
             onKeyDown={handleMinutesKeyDown}
-            className="w-16 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm tabular-nums text-zinc-800 outline-none transition-colors focus:border-green-400 focus:ring-1 focus:ring-green-400"
+            className="w-16 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm tabular-nums text-zinc-800 outline-none transition-colors focus:border-green-400 focus:ring-1 focus:ring-green-400 dark:border-[#3F3F46] dark:bg-[#27272A] dark:text-[#F4F4F5]"
             aria-label="Estimated minutes"
           />
           <button
@@ -127,7 +127,7 @@ export function AddTaskInput({ onAdd }: AddTaskInputProps) {
           </button>
           <button
             onClick={reset}
-            className="rounded-lg px-2 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+            className="rounded-lg px-2 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-[#A1A1AA] dark:hover:bg-[#3F3F46] dark:hover:text-[#F4F4F5]"
           >
             Cancel
           </button>

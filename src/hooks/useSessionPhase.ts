@@ -29,7 +29,11 @@ type TimerAction =
   | { type: "END_LOCK_IN" }
   | { type: "CONTINUE_LOCK_IN" }
   | { type: "TAKE_BREAK" }
-  | { type: "RESUME_FROM_BREAK" };
+  | { type: "RESUME_FROM_BREAK" }
+  /** Dev/testing: advance intro → lock-in → debrief → complete without waiting */
+  | { type: "SKIP_TO_NEXT_PHASE" }
+  /** Dev/testing: end current Pomodoro and show round dialog (same as timer hitting 0) */
+  | { type: "FINISH_ROUND_FOR_TESTING" };
 
 const initialState: TimerState = {
   phase: "intro",
@@ -116,6 +120,26 @@ function timerReducer(state: TimerState, action: TimerAction): TimerState {
       }
       return state;
     }
+
+    case "SKIP_TO_NEXT_PHASE": {
+      if (state.phase === "intro") {
+        return { ...state, introSecondsRemaining: 0, phase: "lock-in" };
+      }
+      if (state.phase === "lock-in") {
+        return { ...state, phase: "debrief", roundComplete: false, isPaused: false };
+      }
+      if (state.phase === "debrief") {
+        return { ...state, debriefSecondsRemaining: 0, phase: "complete" };
+      }
+      return state;
+    }
+
+    case "FINISH_ROUND_FOR_TESTING": {
+      if (state.phase === "lock-in" && !state.roundComplete) {
+        return { ...state, pomodoroSecondsRemaining: 0, roundComplete: true };
+      }
+      return state;
+    }
   }
 }
 
@@ -134,6 +158,10 @@ export interface UseSessionPhaseReturn {
   continueLockIn: () => void;
   takeBreak: () => void;
   resumeFromBreak: () => void;
+  /** Testing: jump to the next phase (plan → lock-in → end → done) */
+  skipPhaseForTesting: () => void;
+  /** Testing: end current Pomodoro round and open the round-complete dialog */
+  finishRoundForTesting: () => void;
 }
 
 export function useSessionPhase(): UseSessionPhaseReturn {
@@ -151,6 +179,11 @@ export function useSessionPhase(): UseSessionPhaseReturn {
   const continueLockIn = useCallback(() => dispatch({ type: "CONTINUE_LOCK_IN" }), []);
   const takeBreak = useCallback(() => dispatch({ type: "TAKE_BREAK" }), []);
   const resumeFromBreak = useCallback(() => dispatch({ type: "RESUME_FROM_BREAK" }), []);
+  const skipPhaseForTesting = useCallback(() => dispatch({ type: "SKIP_TO_NEXT_PHASE" }), []);
+  const finishRoundForTesting = useCallback(
+    () => dispatch({ type: "FINISH_ROUND_FOR_TESTING" }),
+    [],
+  );
 
   const phaseSecondsRemaining =
     state.phase === "intro"
@@ -182,5 +215,7 @@ export function useSessionPhase(): UseSessionPhaseReturn {
     continueLockIn,
     takeBreak,
     resumeFromBreak,
+    skipPhaseForTesting,
+    finishRoundForTesting,
   };
 }

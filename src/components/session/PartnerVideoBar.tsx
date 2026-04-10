@@ -14,17 +14,17 @@ export function PartnerVideoBar({
   onNudge,
 }: PartnerVideoBarProps) {
   return (
-    <div className="flex w-full items-center justify-between rounded-2xl bg-white px-3 py-2">
+    <div className="flex w-full items-center justify-between rounded-none bg-white px-3 py-2 dark:bg-[#18181B]">
       <div className="flex min-w-0 items-center gap-2">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-700 text-xs font-semibold text-white">
           {partnerName?.[0] ?? "?"}
         </div>
         <div className="min-w-0 leading-tight">
           {partnerName && (
-            <div className="truncate text-xs font-semibold text-zinc-800">{partnerName}</div>
+            <div className="truncate text-xs font-semibold text-zinc-800 dark:text-[#F4F4F5]">{partnerName}</div>
           )}
           {partnerUniversity && (
-            <div className="truncate text-[10px] text-zinc-600">{partnerUniversity}</div>
+            <div className="truncate text-[10px] text-zinc-600 dark:text-[#A1A1AA]">{partnerUniversity}</div>
           )}
         </div>
       </div>

@@ -7,21 +7,28 @@ import { VideoControls } from "~/components/session/VideoControls";
 import { VideoFeed } from "~/components/session/VideoFeed";
 
 interface VideoPanelProps {
-  partnerName: string;
-  partnerUniversity: string;
+  mode?: "partner" | "solo";
+  partnerName?: string;
+  partnerUniversity?: string;
   isLockIn: boolean;
 }
 
-export function VideoPanel({ partnerName, partnerUniversity, isLockIn }: VideoPanelProps) {
+export function VideoPanel({
+  mode = "partner",
+  partnerName,
+  partnerUniversity,
+  isLockIn,
+}: VideoPanelProps) {
   const [isMusicOn, setIsMusicOn] = useState(false);
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-4">
       {/* User video — controls overlaid at bottom */}
-      <div className="relative aspect-video w-[90%] max-w-[800px] overflow-hidden rounded-2xl bg-white shadow-md">
+      <div className="relative aspect-video w-[90%] max-w-[800px] overflow-hidden rounded-2xl border border-black bg-white shadow-md dark:border-[#3F3F46] dark:bg-[#27272A]">
         <VideoFeed stream={null} variant="user" />
-        <div className="absolute bottom-3 left-3 right-3">
+        <div className="absolute bottom-0 left-0 right-0">
           <VideoControls
+            mode={mode}
             onHangUp={() => undefined}
             onMusicToggle={() => setIsMusicOn((prev) => !prev)}
             isMusicOn={isMusicOn}
@@ -30,16 +37,17 @@ export function VideoPanel({ partnerName, partnerUniversity, isLockIn }: VideoPa
         </div>
       </div>
 
-      {/* Partner video — info bar overlaid at bottom */}
-      <div className="relative aspect-video w-[90%] max-w-[800px] overflow-hidden rounded-2xl bg-white shadow-md">
-        <VideoFeed stream={null} variant="partner" />
-        <div className="absolute bottom-3 left-3 right-3">
-          <PartnerVideoBar
-            partnerName={partnerName}
-            partnerUniversity={partnerUniversity}
-          />
+      {mode !== "solo" && (
+        <div className="relative aspect-video w-[90%] max-w-[800px] overflow-hidden rounded-2xl border border-black bg-white shadow-md dark:border-[#3F3F46] dark:bg-[#27272A]">
+          <VideoFeed stream={null} variant="partner" />
+          <div className="absolute bottom-0 left-0 right-0">
+            <PartnerVideoBar
+              partnerName={partnerName ?? ""}
+              partnerUniversity={partnerUniversity ?? ""}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

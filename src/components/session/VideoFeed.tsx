@@ -17,7 +17,7 @@ export function VideoFeed({ stream, variant }: VideoFeedProps) {
   }, [stream]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-2xl bg-zinc-200">
+    <div className="relative h-full w-full overflow-hidden rounded-2xl bg-zinc-200 dark:bg-[#27272A]">
       {stream ? (
         <video
           ref={videoRef}
@@ -28,7 +28,7 @@ export function VideoFeed({ stream, variant }: VideoFeedProps) {
           aria-label={variant === "user" ? "Your camera feed" : "Partner camera feed"}
         />
       ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-400">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-400 dark:text-[#A1A1AA]">
           <VideoOff size={32} strokeWidth={1.5} />
           <span className="text-xs">
             {variant === "user" ? "Camera off" : "Waiting for partner…"}

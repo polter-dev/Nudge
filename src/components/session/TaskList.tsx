@@ -17,10 +17,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Fragment } from "react";
 
 import { AddTaskInput } from "~/components/session/AddTaskInput";
-import { TaskActionCard } from "~/components/session/TaskActionCard";
 import { TaskCard } from "~/components/session/TaskCard";
 import { type SessionTask } from "~/types/session";
 
@@ -28,12 +26,16 @@ interface SortableTaskCardProps {
   task: SessionTask;
   isCurrent: boolean;
   positionNumber: number;
+  onComplete: (taskId: string) => void;
+  onDelete: (taskId: string) => void;
 }
 
 function SortableTaskCard({
   task,
   isCurrent,
   positionNumber,
+  onComplete,
+  onDelete,
 }: SortableTaskCardProps) {
   const {
     attributes,
@@ -44,7 +46,6 @@ function SortableTaskCard({
     isDragging,
   } = useSortable({
     id: task.id,
-    disabled: task.status !== "active",
   });
 
   const style: React.CSSProperties = {
@@ -67,6 +68,8 @@ function SortableTaskCard({
         dragHandleListeners={
           listeners as React.HTMLAttributes<HTMLButtonElement>
         }
+        onComplete={() => onComplete(task.id)}
+        onDelete={() => onDelete(task.id)}
       />
     </div>
   );
@@ -86,8 +89,8 @@ export function TaskList({
   tasks,
   currentTask,
   onComplete,
-  onDelete: _onDelete,
-  onSkip,
+  onDelete,
+  onSkip: _onSkip,
   onReorder,
   onAdd,
 }: TaskListProps) {
@@ -127,20 +130,14 @@ export function TaskList({
       >
         <div className="flex flex-col gap-2">
           {visibleTasks.map((task, index) => (
-            <Fragment key={task.id}>
-              <SortableTaskCard
-                task={task}
-                isCurrent={task.id === currentTask?.id}
-                positionNumber={index + 1}
-              />
-              {task.id === currentTask?.id && (
-                <TaskActionCard
-                  taskTitle={task.title}
-                  onComplete={() => onComplete(task.id)}
-                  onSkip={() => onSkip(task.id)}
-                />
-              )}
-            </Fragment>
+            <SortableTaskCard
+              key={task.id}
+              task={task}
+              isCurrent={task.id === currentTask?.id}
+              positionNumber={index + 1}
+              onComplete={onComplete}
+              onDelete={onDelete}
+            />
           ))}
         </div>
       </SortableContext>

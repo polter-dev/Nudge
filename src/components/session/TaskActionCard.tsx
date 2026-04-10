@@ -1,5 +1,6 @@
 "use client";
 
+// TEST — deactivated in revision 5; hover interactions on TaskCard replace this
 import { Check, X } from "lucide-react";
 
 interface TaskActionCardProps {
