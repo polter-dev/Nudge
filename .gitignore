@@ -46,3 +46,7 @@ yarn-error.log*
 .idea
 
 generated/
+
+# claude config folders
+claude/
+.claude/
