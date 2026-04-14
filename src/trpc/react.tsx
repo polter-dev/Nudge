@@ -6,37 +6,26 @@ import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
 import SuperJSON from "superjson";
+import { createClient } from "@supabase/supabase-js";
+import { env } from "~/env.js";
 
 import { type AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
 
+// Initialize Supabase on the frontend to read cookies
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
-  if (typeof window === "undefined") {
-    // Server: always make a new query client
-    return createQueryClient();
-  }
-  // Browser: use singleton pattern to keep the same query client
+  if (typeof window === "undefined") return createQueryClient();
   clientQueryClientSingleton ??= createQueryClient();
-
   return clientQueryClientSingleton;
 };
 
 export const api = createTRPCReact<AppRouter>();
-
-/**
- * Inference helper for inputs.
- *
- * @example type HelloInput = RouterInputs['example']['hello']
- */
-export type RouterInputs = inferRouterInputs<AppRouter>;
-
-/**
- * Inference helper for outputs.
- *
- * @example type HelloOutput = RouterOutputs['example']['hello']
- */
-export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
@@ -52,9 +41,18 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
         httpBatchStreamLink({
           transformer: SuperJSON,
           url: getBaseUrl() + "/api/trpc",
-          headers: () => {
+          // The magic function that attaches the token to every request
+          headers: async () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
+
+            const { data } = await supabase.auth.getSession();
+            const token = data?.session?.access_token;
+
+            if (token) {
+              headers.set("authorization", `Bearer ${token}`);
+            }
+
             return headers;
           },
         }),

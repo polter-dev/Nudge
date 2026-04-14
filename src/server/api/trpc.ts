@@ -114,14 +114,27 @@ Creating logic handling user sessions logging out if demanded using timingMiddle
 */
 
 const authUserCheck = t.middleware(async ({ next, ctx }) => {
-  const user = await ctx.supabase.auth.getUser() // get the user
+  // 1. Extract the Authorization header from the incoming request
+  const token = ctx.headers.get("authorization")?.replace("Bearer ", "");
 
-  if (user.error)
-    throw new Error( "No user at this moment!");
+  if (!token) {
+    // Standard tRPC error for unauthorized access
+    throw new Error("UNAUTHORIZED: No token provided"); 
+  }
 
-  const res = await next({ctx: { userObj: user.data.user }}); //passes the actual user object 
+  // 2. Pass the specific token to Supabase to verify it!
+  const { data, error } = await ctx.supabase.auth.getUser(token);
 
-  return res;
+  if (error || !data.user) {
+    throw new Error("UNAUTHORIZED: Invalid or expired session");
+  }
+
+  // 3. Pass the validated user object down to the procedure
+  return next({ 
+    ctx: { 
+        userObj: data.user 
+    } 
+  }); 
 });
 
 export const protectedProcedure = t.procedure.use(timingMiddleware).use(authUserCheck);

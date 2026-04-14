@@ -36,8 +36,8 @@ export const authRouter = createTRPCRouter({
             email: input.email,
             is_student: false, // set to false since it needs to be auth'd
             university: null,
-            created_at: res.data.user.created_at, // this may not work, not entirely sure
-            updated_at: res.data.user.updated_at // same thing for this 
+            //created_at: res.data.user.created_at, // this may not work, not entirely sure
+            //updated_at: res.data.user.updated_at // same thing for this 
        })
        if (profileError)
             throw new Error("Creating Profile Failed")
@@ -70,5 +70,14 @@ export const authRouter = createTRPCRouter({
             throw new Error("No valid user session!");
 
         return {success: true, confirmation: "Signed Out"};
-    })
+    }),
+
+    getSecretMessage: protectedProcedure.query(({ ctx }) => {
+        // Because this uses protectedProcedure, ctx.userObj is guaranteed to exist!
+        return {
+            message: `Success! You are authenticated as ${ctx.userObj.email}`,
+            userId: ctx.userObj.id,
+        };
+    }),
+
 });
