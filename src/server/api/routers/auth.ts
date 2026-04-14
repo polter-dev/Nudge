@@ -4,7 +4,9 @@ using supabase
 */
 import { z } from "zod";
 
+import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
+import { supabaseAdmin } from "~/server/supabase";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure
@@ -26,21 +28,31 @@ export const authRouter = createTRPCRouter({
 
 
        // access user id -> res.data.user.id;
-       const { error: profileError } = await ctx.supabase 
-       .from('profiles')
-       .insert({
-            id: res.data.user.id,
-            username: input.userName,
-            first_name: input.firstName,
-            last_name: input.lastName,
-            email: input.email,
-            is_student: false, // set to false since it needs to be auth'd
-            university: null,
-            created_at: res.data.user.created_at, // this may not work, not entirely sure
-            updated_at: res.data.user.updated_at // same thing for this 
-       })
-       if (profileError)
-            throw new Error("Creating Profile Failed")
+       // Uses admin client to bypass RLS (no INSERT policy on profiles)
+       try {
+           const { error: profileError } = await supabaseAdmin
+           .from('profiles')
+           .insert({
+                id: res.data.user.id,
+                username: input.userName,
+                first_name: input.firstName,
+                last_name: input.lastName,
+                email: input.email,
+                is_student: false, // set to false since it needs to be auth'd
+                university: null,
+                created_at: res.data.user.created_at, // this may not work, not entirely sure
+                updated_at: res.data.user.updated_at // same thing for this
+           })
+           if (profileError)
+                throw profileError;
+       } catch (err) {
+           // Clean up orphaned auth user if profile insert fails
+           await supabaseAdmin.auth.admin.deleteUser(res.data.user.id);
+           throw new TRPCError({
+               code: "INTERNAL_SERVER_ERROR",
+               message: "Creating Profile Failed",
+           });
+       }
 
        return {success: true, userId: res.data.user.id}
     }),
