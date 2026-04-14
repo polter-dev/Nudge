@@ -1,6 +1,13 @@
 "use client";
 
-import { EndCallIcon, LockIcon, MutedMicIcon, MusicIcon, UnmutedMicIcon } from "~/components/icons/SessionIcons";
+import {
+  CameraOffIcon,
+  CameraOnIcon,
+  EndCallIcon,
+  MutedMicIcon,
+  MusicIcon,
+  UnmutedMicIcon,
+} from "~/components/icons/SessionIcons";
 import { cn } from "~/lib/utils";
 
 interface VideoControlsProps {
@@ -9,6 +16,13 @@ interface VideoControlsProps {
   onMusicToggle: () => void;
   isMusicOn: boolean;
   isLockIn: boolean;
+  onEnableCamera?: () => void;
+  showEnableCameraButton?: boolean;
+  isEnableCameraPending?: boolean;
+  onTurnCameraOff?: () => void;
+  showTurnCameraOffButton?: boolean;
+  isCameraOn: boolean;
+  onCameraToggle: () => void;
 }
 
 export function VideoControls({
@@ -17,18 +31,57 @@ export function VideoControls({
   onMusicToggle,
   isMusicOn,
   isLockIn,
+  onEnableCamera,
+  showEnableCameraButton = false,
+  isEnableCameraPending = false,
+  onTurnCameraOff,
+  showTurnCameraOffButton = false,
+  isCameraOn,
+  onCameraToggle,
 }: VideoControlsProps) {
+  const leftControl =
+    showEnableCameraButton && onEnableCamera ? (
+      <button
+        type="button"
+        onClick={() => void onEnableCamera()}
+        disabled={isEnableCameraPending}
+        className={cn(
+          "rounded-md bg-violet-700 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-800 disabled:cursor-not-allowed disabled:opacity-60",
+        )}
+      >
+        Turn camera on
+      </button>
+    ) : showTurnCameraOffButton && onTurnCameraOff ? (
+      <button
+        type="button"
+        onClick={() => void onTurnCameraOff()}
+        className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-[10px] font-semibold text-zinc-800 transition-colors hover:bg-zinc-50 dark:border-[#3F3F46] dark:bg-[#27272A] dark:text-zinc-100 dark:hover:bg-zinc-800"
+      >
+        Turn camera off
+      </button>
+    ) : (
+      <span className="inline-block w-[22px] shrink-0" aria-hidden="true" />
+    );
+
   return (
-    <div className="flex items-center justify-between rounded-none bg-white px-3 py-1.5 dark:bg-[#18181B]">
-      <div className="w-[22px] shrink-0" aria-hidden="true" />
+    <div className="flex items-center justify-between gap-2 rounded-none bg-white px-3 py-1.5 dark:bg-[#18181B]">
+      <div className="min-w-0 shrink">{leftControl}</div>
 
       <div className="flex items-center gap-3">
         {mode !== "solo" && (
           <>
-            <LockIcon
-              size={14}
-              className={isLockIn ? "text-[#F59E0B]" : "text-zinc-400"}
-            />
+            <button
+              type="button"
+              onClick={() => onCameraToggle()}
+              aria-label={isCameraOn ? "Turn camera off" : "Turn camera on"}
+              className="flex items-center justify-center rounded-full transition-opacity hover:opacity-90 active:scale-95"
+            >
+              {isCameraOn ? (
+                <CameraOnIcon size={32} />
+              ) : (
+                <CameraOffIcon size={32} />
+              )}
+            </button>
             <div className="relative flex items-center justify-center">
               {isLockIn ? (
                 <>

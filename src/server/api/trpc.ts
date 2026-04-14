@@ -6,13 +6,13 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
+import { createServerClient } from "@supabase/ssr";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { env } from "~/env";
 import { db } from "~/server/db";
-import { supabase } from "../supabase"
-
 
 /**
  * 1. CONTEXT
@@ -26,7 +26,25 @@ import { supabase } from "../supabase"
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  cookies: { getAll: () => { name: string; value: string }[] };
+}) => {
+  const supabase = createServerClient(
+    env.SUPABASE_URL,
+    env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return opts.cookies.getAll();
+        },
+        setAll() {
+          // Session refresh is handled by middleware / client; tRPC responses do not set cookies here.
+        },
+      },
+    },
+  );
+
   return {
     db,
     supabase,
@@ -65,12 +83,7 @@ export const createCallerFactory = t.createCallerFactory;
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
  *
- * These are the pieces you use to build your tRPC API. You should import these a lot in the
- * "/src/server/api/routers" directory.
- */
-
-/**
- * This is how you create new routers and sub-routers in your tRPC API.
+ * These are the pieces you use to build your routers and sub-routers in your tRPC API.
  *
  * @see https://trpc.io/docs/router
  */
@@ -108,20 +121,27 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
-
-/*
-Creating logic handling user sessions logging out if demanded using timingMiddleware
-*/
-
 const authUserCheck = t.middleware(async ({ next, ctx }) => {
-  const user = await ctx.supabase.auth.getUser() // get the user
+  const {
+    data: { user },
+    error,
+  } = await ctx.supabase.auth.getUser();
 
-  if (user.error)
-    throw new Error( "No user at this moment!");
+  if (error || !user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to perform this action.",
+    });
+  }
 
-  const res = await next({ctx: { userObj: user.data.user }}); //passes the actual user object 
-
-  return res;
+  return next({
+    ctx: {
+      ...ctx,
+      userObj: user,
+    },
+  });
 });
 
-export const protectedProcedure = t.procedure.use(timingMiddleware).use(authUserCheck);
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(authUserCheck);

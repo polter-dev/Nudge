@@ -64,9 +64,9 @@ export function ProgressBar({
   const isDebriefActive = phase === "debrief";
 
   return (
-    <div className="px-6 pb-4 pt-3">
+    <div className="px-4 pb-2 pt-2">
       {/* Static time labels above track */}
-      <div className="mb-1.5 flex gap-1 text-[10px] font-mono text-zinc-400 dark:text-[#A1A1AA]">
+      <div className="mb-1 flex gap-1 text-[10px] font-mono text-zinc-400 dark:text-[#A1A1AA]">
         <div className="shrink-0 text-center" style={{ width: `${INTRO_VISUAL_PCT}%` }}>3:00</div>
         <div className="shrink-0 text-center" style={{ width: `${LOCK_VISUAL_PCT}%` }}>25:00</div>
         <div className="shrink-0 text-center" style={{ width: `${DEBRIEF_VISUAL_PCT}%` }}>3:00</div>
@@ -131,7 +131,7 @@ export function ProgressBar({
       </div>
 
       {/* Phase names + subtitles below track */}
-      <div className="mt-2 flex gap-1">
+      <div className="mt-1 flex gap-1">
         {/* Intro */}
         <div className="shrink-0 text-center" style={{ width: `${INTRO_VISUAL_PCT}%` }}>
           <div

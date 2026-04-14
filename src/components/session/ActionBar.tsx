@@ -49,7 +49,7 @@ export function ActionBar({
         <button
           type="button"
           onClick={onNudgeSelf}
-          className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-purple-500 bg-transparent py-2 pl-1 pr-4 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-50 active:bg-purple-100 dark:border-[#A855F7] dark:text-[#A855F7] dark:hover:bg-[rgba(168,85,247,0.1)] dark:active:bg-[rgba(168,85,247,0.2)]"
+          className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-purple-500 bg-transparent py-2 pl-1 pr-4 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-50 active:bg-purple-100 dark:border-white dark:bg-white dark:text-purple-700 dark:hover:bg-[rgba(168,85,247,0.1)] dark:active:bg-[rgba(168,85,247,0.2)]"
           style={{ flex: `${NUDGE_GROW} 1 0%` }}
         >
           <NudgeIcon size={16} className="shrink-0" />

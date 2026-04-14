@@ -51,7 +51,7 @@ export function SessionRightPanel({
 
       {mode !== "solo" && (
         <div className="shrink-0 bg-stone-100 px-3 pb-3 pt-2 dark:bg-[#12121A]">
-          <div className="rounded-3xl bg-[#FBE3A1] p-6 dark:bg-[#292011]">
+          <div className="rounded-3xl bg-[#FBE3A1] p-6 dark:bg-[#6D28D9]">
             <PartnerFocusCard currentTask={partnerCurrentTask} />
           </div>
         </div>

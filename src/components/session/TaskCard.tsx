@@ -47,7 +47,7 @@ export function TaskCard({
         "group flex items-center gap-2 rounded-xl border border-black px-3 py-2.5 transition-shadow dark:border-[#3F3F46]",
         isDragging && "shadow-lg",
         isActive &&
-          "border-2 border-black bg-white dark:border-[#F97316] dark:bg-[#27272A]",
+          "border-2 border-black bg-white dark:border-white dark:bg-[#27272A]",
         isCompleted && "bg-[--color-task-done]",
         isSkipped && "bg-[--color-task-done]",
       )}

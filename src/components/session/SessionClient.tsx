@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+import { useLiveKitOptional } from "~/app/session/partner/LiveKitProvider";
 import { NudgeLogo } from "~/components/icons/NudgeLogo";
 import { HelpIcon, MessagesIcon, SettingsIcon, SidebarToggleIcon } from "~/components/icons/SidebarIcons";
 
 import { ActionBar } from "~/components/session/ActionBar";
 import { BreakBanner } from "~/components/session/BreakBanner";
+import { CameraGuard } from "~/components/session/CameraGuard";
+import { PartnerMIADialog } from "~/components/session/PartnerMIADialog";
 import { PomodoroRoundDialog } from "~/components/session/PomodoroRoundDialog";
 import { ProgressBar } from "~/components/session/ProgressBar";
 import { SessionRightPanel } from "~/components/session/SessionRightPanel";
 import { VideoPanel } from "~/components/session/VideoPanel";
+import { useCameraGuard } from "~/hooks/useCameraGuard";
 import { useSessionPhase } from "~/hooks/useSessionPhase";
 import { useTaskList } from "~/hooks/useTaskList";
+import { classifyCameraError } from "~/lib/cameraErrorKind";
 import { cn } from "~/lib/utils";
 import { type SessionTask } from "~/types/session";
 
@@ -37,8 +43,171 @@ export function SessionClient({
   partnerName,
   partnerUniversity,
 }: SessionClientProps) {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDark, setIsDark] = useState(false);
+  const [partnerCameraDenied, setPartnerCameraDenied] = useState(false);
+  const [partnerCameraNotFound, setPartnerCameraNotFound] = useState(false);
+  const [soloLocalStream, setSoloLocalStream] = useState<MediaStream | null>(
+    null,
+  );
+  const [soloCameraError, setSoloCameraError] = useState<string | null>(null);
+  const [soloCameraStarting, setSoloCameraStarting] = useState(false);
+  const [soloCameraDenied, setSoloCameraDenied] = useState(false);
+  const [soloCameraNotFound, setSoloCameraNotFound] = useState(false);
+  const soloStreamRef = useRef<MediaStream | null>(null);
+  const liveKit = useLiveKitOptional();
+
+  useEffect(() => {
+    soloStreamRef.current = soloLocalStream;
+  }, [soloLocalStream]);
+
+  useEffect(() => {
+    return () => {
+      soloStreamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "solo") {
+      setSoloLocalStream((prev) => {
+        prev?.getTracks().forEach((t) => t.stop());
+        return null;
+      });
+      setSoloCameraError(null);
+      setSoloCameraDenied(false);
+      setSoloCameraNotFound(false);
+      setSoloCameraStarting(false);
+    }
+  }, [mode]);
+
+  const localStream =
+    mode === "partner" ? (liveKit?.localStream ?? soloLocalStream) : soloLocalStream;
+  const remoteStream =
+    mode === "partner" ? (liveKit?.remoteStream ?? null) : null;
+  const isLocalCameraPending =
+    (mode === "partner" && (liveKit?.connectionState === "connecting" || soloCameraStarting)) ||
+    (mode === "solo" && soloCameraStarting);
+  const isVideoReconnecting =
+    mode === "partner" && liveKit?.connectionState === "reconnecting";
+
+  const partnerCameraError =
+    mode === "partner" ? (liveKit?.error ?? null) : null;
+
+  useEffect(() => {
+    if (mode !== "partner" || !liveKit?.error) {
+      setPartnerCameraDenied(false);
+      setPartnerCameraNotFound(false);
+      return;
+    }
+    const kind = classifyCameraError(liveKit.error);
+    setPartnerCameraDenied(kind === "denied");
+    setPartnerCameraNotFound(kind === "notfound");
+  }, [mode, liveKit?.error]);
+
+  async function handleEnablePartnerCamera() {
+    // TEMP DEV BYPASS: use direct getUserMedia instead of LiveKit token auth
+    await handleEnableSoloCamera();
+  }
+
+  async function handleEnableSoloCamera() {
+    setSoloCameraError(null);
+    setSoloCameraDenied(false);
+    setSoloCameraNotFound(false);
+    setSoloCameraStarting(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
+      setSoloLocalStream((prev) => {
+        prev?.getTracks().forEach((t) => t.stop());
+        return stream;
+      });
+    } catch (e) {
+      const message =
+        e instanceof Error ? e.message : "Could not access your camera.";
+      setSoloCameraError(message);
+      if (e instanceof DOMException) {
+        if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+          setSoloCameraDenied(true);
+          setSoloCameraNotFound(false);
+        } else if (
+          e.name === "NotFoundError" ||
+          e.name === "OverconstrainedError"
+        ) {
+          setSoloCameraNotFound(true);
+          setSoloCameraDenied(false);
+        } else {
+          const kind = classifyCameraError(message);
+          setSoloCameraDenied(kind === "denied");
+          setSoloCameraNotFound(kind === "notfound");
+        }
+      } else {
+        const kind = classifyCameraError(message);
+        setSoloCameraDenied(kind === "denied");
+        setSoloCameraNotFound(kind === "notfound");
+      }
+    } finally {
+      setSoloCameraStarting(false);
+    }
+  }
+
+  async function handleEnableLocalCamera() {
+    if (mode === "partner") {
+      await handleEnablePartnerCamera();
+    } else {
+      await handleEnableSoloCamera();
+    }
+  }
+
+  function handleStopSoloCamera() {
+    setSoloLocalStream((prev) => {
+      prev?.getTracks().forEach((t) => t.stop());
+      return null;
+    });
+    setSoloCameraError(null);
+    setSoloCameraDenied(false);
+    setSoloCameraNotFound(false);
+  }
+
+  async function handleTurnCameraOff() {
+    if (mode === "partner" && liveKit?.localStream) {
+      // Real LiveKit path (when auth is in place)
+      await liveKit.stopLocalCamera();
+    } else {
+      // TEMP DEV BYPASS path (and solo mode)
+      handleStopSoloCamera();
+    }
+  }
+
+  function handleCameraDisconnect() {
+    handleStopSoloCamera();
+    router.push("/dashboard");
+  }
+
+  const { showWarning, resetGuard } = useCameraGuard(
+    localStream !== null,
+    handleCameraDisconnect,
+  );
+
+  async function handleImBack() {
+    resetGuard();
+    await handleEnableLocalCamera();
+  }
+
+  const showLocalCameraButton =
+    (mode === "partner" && localStream === null) ||
+    (mode === "solo" && localStream === null);
+
+  const showTurnCameraOffButton = localStream !== null;
+
+  const localCameraDenied =
+    mode === "partner" ? (partnerCameraDenied || soloCameraDenied) : soloCameraDenied;
+  const localCameraNotFound =
+    mode === "partner" ? (partnerCameraNotFound || soloCameraNotFound) : soloCameraNotFound;
+  const localCameraError =
+    mode === "partner" ? (partnerCameraError ?? soloCameraError) : soloCameraError;
 
   const {
     phase,
@@ -92,18 +261,20 @@ export function SessionClient({
       {/* ── Left sidebar ── */}
       <aside
         className={cn(
-          "flex shrink-0 flex-col items-center bg-[#2D1B4E] pt-6 transition-all duration-300 dark:bg-[#09090D]",
+          "z-10 flex shrink-0 flex-col items-center bg-[#2D1B4E] transition-all duration-300 dark:bg-[#09090D]",
           isSidebarOpen ? "w-14" : "w-8",
         )}
       >
-        <button
-          type="button"
-          aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-          onClick={() => setIsSidebarOpen((prev) => !prev)}
-          className="rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          <SidebarToggleIcon size={22} />
-        </button>
+        <div style={{ height: 44 }} className="flex w-full shrink-0 items-center justify-center">
+          <button
+            type="button"
+            aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            className="rounded-full p-1 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <SidebarToggleIcon size={20} />
+          </button>
+        </div>
 
         <div
           className={cn(
@@ -208,8 +379,8 @@ export function SessionClient({
       {/* ── Main content ── */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-11 shrink-0 items-center justify-center overflow-visible bg-black">
-          <NudgeLogo className="h-[1.58203125rem] w-auto" />
+        <header style={{ height: 44 }} className="flex shrink-0 items-center justify-center overflow-hidden bg-black dark:bg-[#6D28D9]">
+          <NudgeLogo className="h-6 w-auto max-h-full" />
         </header>
 
         {/* Two-column content — CSS Grid: progress + action bar row, then video + task panel */}
@@ -230,7 +401,7 @@ export function SessionClient({
             />
           </div>
 
-          <div className="flex min-h-0 shrink-0 items-center self-stretch border-b border-zinc-200 bg-stone-100 px-6 py-3 dark:border-[#3F3F46] dark:bg-[#12121A]">
+          <div className="flex min-h-0 shrink-0 items-center self-stretch border-b border-zinc-200 bg-stone-100 px-4 py-2 dark:border-[#3F3F46] dark:bg-[#12121A]">
             <ActionBar
               secondsRemaining={timerSeconds}
               round={timerRound}
@@ -246,6 +417,26 @@ export function SessionClient({
               partnerName={partnerName}
               partnerUniversity={partnerUniversity}
               isLockIn={phase === "lock-in"}
+              localStream={localStream}
+              remoteStream={remoteStream}
+              isLocalCameraPending={isLocalCameraPending}
+              isVideoReconnecting={isVideoReconnecting}
+              onEnableLocalCamera={handleEnableLocalCamera}
+              showLocalCameraButton={showLocalCameraButton}
+              onTurnCameraOff={handleTurnCameraOff}
+              showTurnCameraOffButton={showTurnCameraOffButton}
+              localCameraDenied={localCameraDenied}
+              localCameraNotFound={localCameraNotFound}
+              localCameraError={localCameraError}
+              isCameraOn={localStream !== null}
+              onCameraToggle={() => {
+                if (localStream !== null) {
+                  void handleTurnCameraOff();
+                  resetGuard();
+                } else {
+                  void handleEnableLocalCamera();
+                }
+              }}
             />
           </div>
 
@@ -261,6 +452,9 @@ export function SessionClient({
           </div>
         </div>
       </div>
+
+      {showWarning && <CameraGuard onImBack={handleImBack} />}
+      <PartnerMIADialog isOpen={false} />
     </div>
   );
 }
