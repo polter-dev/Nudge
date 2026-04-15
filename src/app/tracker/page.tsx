@@ -12,17 +12,24 @@ export default function VisionTracker() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Use state for the UI to react
+  // UI State
   const [isDistracted, setIsDistracted] = useState(false);
+  const [isTaskCompleted, setIsTaskCompleted] = useState(false);
 
-  // Use refs for the math loop so we don't get stale closures
+  // Math Loop Refs
   const distractionStartTime = useRef<number | null>(null);
   const isDistractedRef = useRef(false);
+  
+  // NEW: Focus Tracking Refs
+  const focusStartTime = useRef<number | null>(null);
+  const lastLoggedSecond = useRef<number>(0);
+  const isTaskCompletedRef = useRef(false); 
 
   // Configuration thresholds
   const YAW_THRESHOLD = 0.25; 
   const PITCH_THRESHOLD = 0.25; 
   const TIME_THRESHOLD_MS = 2000; 
+  const FOCUS_REQUIRED_MS = 15000; 
 
   useEffect(() => {
     let faceLandmarker: FaceLandmarker;
@@ -107,6 +114,12 @@ export default function VisionTracker() {
               Math.abs(ratioY - 0.5) > PITCH_THRESHOLD;
 
             if (isLookingAway) {
+              // --- DISTRACTION LOGIC ---
+              
+              // Reset the focus streak because they looked away!
+              focusStartTime.current = null;
+              lastLoggedSecond.current = 0;
+
               if (distractionStartTime.current === null) {
                 distractionStartTime.current = performance.now();
               } else {
@@ -119,12 +132,42 @@ export default function VisionTracker() {
                 }
               }
             } else {
+              // --- FOCUS LOGIC ---
+              
               distractionStartTime.current = null;
               
               if (isDistractedRef.current) {
                 isDistractedRef.current = false;
                 setIsDistracted(false);
                 console.log("User regained focus.");
+              }
+
+              // Only track focus if the task isn't already finished
+              if (!isTaskCompletedRef.current) {
+                if (focusStartTime.current === null) {
+                  focusStartTime.current = performance.now();
+                }
+
+                // Calculate how long they have been continuously looking
+                const focusDuration = performance.now() - focusStartTime.current;
+                
+                // Convert to whole seconds
+                const currentSecond = Math.floor(focusDuration / 1000);
+
+                // If a new second has passed, log it
+                if (currentSecond > lastLoggedSecond.current) {
+                  lastLoggedSecond.current = currentSecond;
+                  console.log(`Focused for ${currentSecond} second(s)...`);
+                }
+
+                // Check if they hit the requirement
+                if (focusDuration >= FOCUS_REQUIRED_MS) {
+                  isTaskCompletedRef.current = true; // Update ref for the loop
+                  setIsTaskCompleted(true);          // Update state for UI
+                  console.log(`TASK COMPLETED: Looked at screen for ${FOCUS_REQUIRED_MS / 1000} seconds!`);
+                  
+                  // TODO: Fire off Supabase mutation here to insert into participant_tasks
+                }
               }
             }
 
@@ -165,7 +208,6 @@ export default function VisionTracker() {
     };
   }, []);
 
-  // NEW: Force the global body tag to change color
   useEffect(() => {
     if (isDistracted) {
       document.body.style.backgroundColor = "#b91c1c"; // Tailwind red-700
@@ -174,26 +216,31 @@ export default function VisionTracker() {
       document.body.style.backgroundColor = "#111827"; // Tailwind gray-900
     }
 
-    // Cleanup when component unmounts
     return () => {
       document.body.style.backgroundColor = "";
     };
   }, [isDistracted]);
 
   return (
-    // Updated background to a brighter red so it is impossible to miss
     <div className={`flex min-h-screen flex-col items-center justify-center p-8 transition-colors duration-500 ${isDistracted ? 'bg-red-700' : 'bg-gray-900'}`}>
       
-      {/* Alert Banner */}
-      <div className="h-12 mb-4">
+      {/* Alert / Success Banners */}
+      <div className="h-12 mb-4 flex gap-4">
         {isDistracted && (
           <div className="animate-bounce rounded-full bg-red-900 border-2 border-white px-6 py-2 text-white font-bold tracking-wide shadow-2xl shadow-black/50">
             ⚠️ FOCUS LOST - PLEASE LOOK AT SCREEN ⚠️
           </div>
         )}
+
+        {/* NEW: Success Banner */}
+        {isTaskCompleted && (
+          <div className="rounded-full bg-green-600 border-2 border-white px-6 py-2 text-white font-bold tracking-wide shadow-2xl shadow-green-500/50">
+            ✅ TASK COMPLETE: Focus Maintained
+          </div>
+        )}
       </div>
 
-      <div className={`relative w-[640px] h-[480px] overflow-hidden rounded-2xl bg-black shadow-2xl transition-all duration-500 ${isDistracted ? 'shadow-black/50 ring-8 ring-red-900 scale-105' : 'shadow-blue-900/20'}`}>
+      <div className={`relative w-[640px] h-[480px] overflow-hidden rounded-2xl bg-black shadow-2xl transition-all duration-500 ${isDistracted ? 'shadow-black/50 ring-8 ring-red-900 scale-105' : isTaskCompleted ? 'ring-4 ring-green-500 shadow-green-500/50' : 'shadow-blue-900/20'}`}>
         {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center text-white z-10">
             <span className="animate-pulse">Loading AI Model...</span>
@@ -214,8 +261,8 @@ export default function VisionTracker() {
       </div>
       
       <div className="mt-8 text-center text-gray-400">
-        <h2 className={`text-xl font-semibold mb-2 transition-colors duration-500 ${isDistracted ? 'text-white' : 'text-white'}`}>
-          {isDistracted ? 'Session Paused' : 'Real-Time Focus Tracking'}
+        <h2 className={`text-xl font-semibold mb-2 transition-colors duration-500 ${isDistracted ? 'text-white' : isTaskCompleted ? 'text-green-400' : 'text-white'}`}>
+          {isDistracted ? 'Session Paused' : isTaskCompleted ? 'Task Successfully Logged' : 'Real-Time Focus Tracking'}
         </h2>
         <p className={isDistracted ? 'text-red-200' : 'text-gray-400'}>Using MediaPipe WebAssembly & WebGL</p>
       </div>
