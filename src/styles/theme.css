@@ -119,6 +119,38 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+:root {
+  --nudge-bg: #F9FAFB;
+  --nudge-surface: #FFFFFF;
+  --nudge-surface-border: #E5E7EB;
+  --nudge-surface-hover: #F9FAFB;
+  --nudge-divider: #F3F4F6;
+  --nudge-text-primary: #111111;
+  --nudge-text-secondary: #374151;
+  --nudge-text-muted: #6B7280;
+  --nudge-text-faint: #9CA3AF;
+  --nudge-topbar: #2D1B4E;
+  --nudge-input-bg: #FFFFFF;
+  --nudge-input-border: #D1D5DB;
+  --nudge-card-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.dark {
+  --nudge-bg: #0F0F13;
+  --nudge-surface: #1A1A23;
+  --nudge-surface-border: #2A2A35;
+  --nudge-surface-hover: #22222D;
+  --nudge-divider: #2A2A35;
+  --nudge-text-primary: #F0F0F5;
+  --nudge-text-secondary: #C8C8D0;
+  --nudge-text-muted: #8888A0;
+  --nudge-text-faint: #606078;
+  --nudge-topbar: #18102A;
+  --nudge-input-bg: #1A1A23;
+  --nudge-input-border: #3A3A48;
+  --nudge-card-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -126,6 +158,9 @@
 
   body {
     @apply bg-background text-foreground;
+    background: var(--nudge-bg);
+    color: var(--nudge-text-primary);
+    transition: background 0.2s ease, color 0.2s ease;
   }
 
   /**

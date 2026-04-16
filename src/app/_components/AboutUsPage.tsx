@@ -73,7 +73,7 @@ export function AboutUsPage() {
             <span style={{ color: '#7C3AED' }}>tired of procrastinating</span>
           </h1>
           <p className="text-[18px] text-[#6B7280] mt-4 leading-relaxed max-w-xl mx-auto">
-            Nudge started as a simple idea in a dorm room: what if studying felt less lonely and more productive?
+            Nudge started as a simple idea: what if studying felt less lonely and more productive?
           </p>
         </div>
       </section>
@@ -102,7 +102,7 @@ export function AboutUsPage() {
               study sessions. No small talk. No distractions. Just focused work with someone who gets it.
             </p>
             <p style={{ color: '#7C3AED', fontWeight: 600 }}>
-              Today, over 2,400 students across 50+ universities use Nudge to stay on track.
+              And we&apos;re just getting started.
             </p>
           </div>
         </div>

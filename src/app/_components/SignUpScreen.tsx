@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Lock, Shield, AlertCircle } from 'lucide-react';
+import { Lock, Shield, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from './AuthProvider';
+import { api } from '~/trpc/react';
 
 function MicrosoftLogo() {
   return (
@@ -99,6 +100,22 @@ export function SignUpScreen() {
 
   const [form, setForm] = useState({ firstName: '', lastName: '', userName: '', email: '' });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [serverError, setServerError] = useState('');
+
+  const signupMutation = api.auth.signup.useMutation({
+    onSuccess: (_data) => {
+      loginWithDemo({
+        email: form.email.trim().toLowerCase(),
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        userName: form.userName.trim(),
+      });
+      navigate('/profile-setup');
+    },
+    onError: (err) => {
+      setServerError(err.message);
+    },
+  });
 
   const errors = {
     firstName: touched.firstName && !form.firstName ? 'Required' : '',
@@ -127,14 +144,14 @@ export function SignUpScreen() {
 
   const handleContinue = () => {
     touchAll();
+    setServerError('');
     if (!isValid) return;
-    loginWithDemo({
-      email: form.email.trim().toLowerCase(),
+    signupMutation.mutate({
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       userName: form.userName.trim(),
+      email: form.email.trim().toLowerCase(),
     });
-    navigate('/dashboard');
   };
 
   const set = (field: keyof typeof form) => (value: string) =>
@@ -270,9 +287,19 @@ export function SignUpScreen() {
             <div className="flex-1" style={{ height: 1, background: '#E5E7EB' }} />
           </div>
 
+          {/* Server error */}
+          {serverError && (
+            <div className="w-full flex items-center gap-2 mt-4 px-3 py-2.5 rounded-lg"
+              style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+              <AlertCircle size={14} color="#EF4444" />
+              <span className="text-[13px]" style={{ color: '#EF4444' }}>{serverError}</span>
+            </div>
+          )}
+
           {/* Microsoft button */}
           <button
             onClick={handleContinue}
+            disabled={signupMutation.isPending}
             className="w-full flex items-center justify-center gap-3 mt-4 transition-colors"
             style={{
               height: 48,
@@ -283,18 +310,23 @@ export function SignUpScreen() {
               fontWeight: 600,
               fontSize: 15,
               color: isValid ? '#FFFFFF' : '#6B7280',
-              cursor: 'pointer',
+              cursor: signupMutation.isPending ? 'not-allowed' : 'pointer',
+              opacity: signupMutation.isPending ? 0.7 : 1,
               transition: 'all 0.15s',
             }}
             onMouseEnter={(e) => {
-              if (isValid) e.currentTarget.style.background = '#6D28D9';
+              if (isValid && !signupMutation.isPending) e.currentTarget.style.background = '#6D28D9';
             }}
             onMouseLeave={(e) => {
               if (isValid) e.currentTarget.style.background = '#7C3AED';
             }}
           >
-            <MicrosoftLogo />
-            Continue with Microsoft
+            {signupMutation.isPending ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <MicrosoftLogo />
+            )}
+            {signupMutation.isPending ? 'Creating account…' : 'Continue with Microsoft'}
           </button>
 
           <p

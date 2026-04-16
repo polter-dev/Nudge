@@ -11,13 +11,6 @@ import {
 
 const FONT_HEADING = "'General Sans', sans-serif";
 
-const stats = [
-  { value: '3.2x', label: 'More productive with a study partner' },
-  { value: '87%', label: 'Of students report less procrastination' },
-  { value: '45min', label: 'Average session length on Nudge' },
-  { value: '92%', label: 'Would recommend to a friend' },
-];
-
 const problems = [
   {
     icon: <Clock size={24} color="#EF4444" />,
@@ -111,24 +104,6 @@ export function WhyNudgePage() {
         </div>
       </section>
 
-      {/* Stats bar */}
-      <section
-        className="w-full py-8"
-        style={{ background: '#2D1B4E' }}
-      >
-        <div className="max-w-5xl mx-auto flex items-center justify-around px-6">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <p style={{ fontFamily: FONT_HEADING, fontSize: 32, fontWeight: 800, color: '#FFFFFF' }}>
-                {s.value}
-              </p>
-              <p className="text-[13px] mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                {s.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* The Problem */}
       <section className="w-full py-20 px-6">
@@ -202,7 +177,7 @@ export function WhyNudgePage() {
       <section className="w-full py-20 px-6">
         <div className="max-w-2xl mx-auto text-center">
           <h2 style={{ fontFamily: FONT_HEADING, fontSize: 32, fontWeight: 700, color: '#111' }}>
-            Ready to study smarter?
+            Ready to focus?
           </h2>
           <p className="text-[16px] text-[#6B7280] mt-3">
             Join thousands of students who stopped procrastinating and started locking in.

@@ -17,6 +17,10 @@ model User {
     email         String         @unique
     authenticated Boolean        @default(false)
     university    String?
+    bio           String?
+    major         String?
+    year          String?
+    avatarUrl     String?
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
 

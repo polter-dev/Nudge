@@ -11,6 +11,7 @@ import {
   LogOut,
   Plus,
   Trash2,
+  TrendingUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -33,12 +34,85 @@ const FONT_HEADING = "'General Sans', sans-serif";
 const FONT_BODY = "'DM Sans', sans-serif";
 
 /* ─── Top Bar ─── */
+const SAMPLE_NOTIFICATIONS = [
+  {
+    id: 1,
+    type: 'match' as const,
+    title: 'New study partner available',
+    message: 'Sarah M. from Florida State is looking for a study partner right now.',
+    time: '2 min ago',
+    unread: true,
+  },
+  {
+    id: 2,
+    type: 'streak' as const,
+    title: 'Keep your streak alive! 🔥',
+    message: "You're on a 12-day streak. Complete a session today to keep it going.",
+    time: '1 hour ago',
+    unread: true,
+  },
+  {
+    id: 3,
+    type: 'achievement' as const,
+    title: 'New achievement unlocked',
+    message: 'You earned the "Champion" badge for reaching 400 Nudge Points!',
+    time: '3 hours ago',
+    unread: false,
+  },
+  {
+    id: 4,
+    type: 'session' as const,
+    title: 'Session summary ready',
+    message: 'Your session with Zack J. scored 91%. View your full breakdown.',
+    time: 'Yesterday',
+    unread: false,
+  },
+  {
+    id: 5,
+    type: 'leaderboard' as const,
+    title: 'You moved up! 📈',
+    message: "You're now #3 on the all-time leaderboard. Keep grinding!",
+    time: 'Yesterday',
+    unread: false,
+  },
+];
+
+function NotificationIcon({ type }: { type: string }) {
+  const config: Record<string, { bg: string; icon: React.ReactNode }> = {
+    match: { bg: '#EDE9FE', icon: <Users size={14} color="#7C3AED" /> },
+    streak: { bg: '#FEF3C7', icon: <Star size={14} color="#D97706" /> },
+    achievement: { bg: '#FDE68A', icon: <Trophy size={14} color="#92400E" /> },
+    session: { bg: '#DCFCE7', icon: <Check size={14} color="#16A34A" /> },
+    leaderboard: { bg: '#DBEAFE', icon: <TrendingUp size={14} color="#2563EB" /> },
+  };
+  const c = config[type] ?? config.match!;
+  return (
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+      style={{ background: c.bg }}
+    >
+      {c.icon}
+    </div>
+  );
+}
+
 function TopBar() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const displayName = user ? user.firstName : 'Student';
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const markAllRead = () =>
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+
+  const markRead = (id: number) =>
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: false } : n)),
+    );
 
   return (
     <div
@@ -61,17 +135,140 @@ function TopBar() {
 
       {/* Right — bell + avatar + name + chevron */}
       <div className="flex items-center gap-4">
-        <button className="relative" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <Bell size={20} color="rgba(255,255,255,0.7)" />
-          <span
-            className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
-            style={{ background: '#7C3AED', border: '2px solid #2D1B4E' }}
-          />
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              setShowDropdown(false);
+            }}
+            className="relative"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            <Bell size={20} color={showNotifications ? '#FFFFFF' : 'rgba(255,255,255,0.7)'} />
+            {unreadCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] text-white"
+                style={{ background: '#EF4444', fontWeight: 700, padding: '0 4px', border: '2px solid #2D1B4E' }}
+              >
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowNotifications(false)}
+              />
+              <div
+                className="absolute right-0 mt-2 rounded-xl overflow-hidden z-20"
+                style={{
+                  width: 360,
+                  background: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                }}
+              >
+                {/* Header */}
+                <div
+                  className="flex items-center justify-between px-4 py-3"
+                  style={{ borderBottom: '1px solid #F3F4F6' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <h3
+                      className="text-[14px]"
+                      style={{ fontFamily: FONT_HEADING, fontWeight: 700, color: '#111' }}
+                    >
+                      Notifications
+                    </h3>
+                    {unreadCount > 0 && (
+                      <span
+                        className="text-[11px] px-1.5 py-0.5 rounded-full text-white"
+                        style={{ background: '#7C3AED', fontWeight: 600 }}
+                      >
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      className="text-[12px]"
+                      style={{ color: '#7C3AED', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                {/* Notification list */}
+                <div style={{ maxHeight: 380, overflowY: 'auto' }}>
+                  {notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => markRead(n.id)}
+                      className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                      style={{
+                        background: n.unread ? '#FAF5FF' : 'transparent',
+                        borderBottom: '1px solid #F3F4F6',
+                        border: 'none',
+                        borderBlockEnd: '1px solid #F3F4F6',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <NotificationIcon type={n.type} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p
+                            className="text-[13px] truncate"
+                            style={{ fontWeight: n.unread ? 600 : 500, color: '#111' }}
+                          >
+                            {n.title}
+                          </p>
+                          {n.unread && (
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{ background: '#7C3AED' }}
+                            />
+                          )}
+                        </div>
+                        <p className="text-[12px] text-[#6B7280] mt-0.5 line-clamp-2">
+                          {n.message}
+                        </p>
+                        <p className="text-[11px] text-[#9CA3AF] mt-1">{n.time}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div
+                  className="px-4 py-2.5 text-center"
+                  style={{ borderTop: '1px solid #F3F4F6' }}
+                >
+                  <button
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate('/settings');
+                    }}
+                    className="text-[12px]"
+                    style={{ color: '#7C3AED', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Notification settings
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="relative">
           <button
-            onClick={() => setShowDropdown(!showDropdown)}
+            onClick={() => {
+              setShowDropdown(!showDropdown);
+              setShowNotifications(false);
+            }}
             className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
@@ -114,7 +311,10 @@ function TopBar() {
                 )}
                 <button
                   className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-                  onClick={() => setShowDropdown(false)}
+                  onClick={() => {
+                    setShowDropdown(false);
+                    navigate('/settings');
+                  }}
                 >
                   <Settings size={16} color="#6B7280" />
                   <span className="text-[14px] text-[#374151]" style={{ fontWeight: 500 }}>
@@ -631,6 +831,7 @@ function TodoList() {
 
 /* ─── Leaderboard with tabs ─── */
 function Leaderboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [tab, setTab] = useState<'allTime' | 'weekly'>('allTime');
 
@@ -674,6 +875,14 @@ function Leaderboard() {
             Leaderboard
           </h3>
         </div>
+        <button
+          onClick={() => navigate('/leaderboard')}
+          className="flex items-center gap-1 text-[13px]"
+          style={{ color: '#7C3AED', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          View all
+          <ArrowRight size={14} />
+        </button>
       </div>
 
       {/* Tabs */}
@@ -703,7 +912,7 @@ function Leaderboard() {
       </div>
 
       {/* Podium (top 3) */}
-      <div className="flex items-end justify-center gap-4 mb-4" style={{ minHeight: 100 }}>
+      <div className="flex items-end justify-center gap-4 mb-4" style={{ minHeight: 130 }}>
         {/* 2nd place */}
         <div className="flex flex-col items-center">
           <div className="w-9 h-9 rounded-full overflow-hidden mb-1">
@@ -713,6 +922,9 @@ function Leaderboard() {
               className="w-full h-full object-cover"
             />
           </div>
+          <p className="text-[11px] text-[#374151] mb-1" style={{ fontWeight: 600 }}>
+            {rows[1]?.name}
+          </p>
           <div
             className="flex items-center justify-center rounded-t-md"
             style={{
@@ -738,6 +950,9 @@ function Leaderboard() {
               className="w-full h-full object-cover"
             />
           </div>
+          <p className="text-[11px] text-[#92400E] mb-1" style={{ fontWeight: 700 }}>
+            {rows[0]?.name}
+          </p>
           <div
             className="flex items-center justify-center rounded-t-md"
             style={{
@@ -763,6 +978,9 @@ function Leaderboard() {
               className="w-full h-full object-cover"
             />
           </div>
+          <p className="text-[11px] text-[#9A3412] mb-1" style={{ fontWeight: 600 }}>
+            {rows[2]?.name}
+          </p>
           <div
             className="flex items-center justify-center rounded-t-md"
             style={{
