@@ -47,7 +47,10 @@ export const authRouter = createTRPCRouter({
                 throw profileError;
        } catch (err) {
            // Clean up orphaned auth user if profile insert fails
-           await supabaseAdmin.auth.admin.deleteUser(res.data.user.id);
+           const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(res.data.user.id);
+           if (deleteError) {
+               console.error(`Failed to clean up orphaned auth user ${res.data.user.id}:`, deleteError);
+           }
            throw new TRPCError({
                code: "INTERNAL_SERVER_ERROR",
                message: "Creating Profile Failed",
