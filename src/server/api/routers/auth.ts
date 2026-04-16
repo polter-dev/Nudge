@@ -29,8 +29,7 @@ export const authRouter = createTRPCRouter({
 
        // access user id -> res.data.user.id;
        // Uses admin client to bypass RLS (no INSERT policy on profiles)
-       try {
-           const { error: profileError } = await supabaseAdmin
+       const { error: profileError } = await supabaseAdmin
            .from('profiles')
            .insert({
                 id: res.data.user.id,
@@ -43,9 +42,8 @@ export const authRouter = createTRPCRouter({
                 created_at: res.data.user.created_at, // this may not work, not entirely sure
                 updated_at: res.data.user.updated_at // same thing for this
            })
-           if (profileError)
-                throw profileError;
-       } catch (err) {
+
+       if (profileError) {
            // Clean up orphaned auth user if profile insert fails
            const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(res.data.user.id);
            if (deleteError) {
