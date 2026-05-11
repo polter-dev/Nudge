@@ -1,4 +1,4 @@
-# Nudge
+# Nudge (deceased)
 
 A student only accountability platform that pairs college students for live, video-call based study sessions to combat procrastionation and build consistent study habits utilizing the pomodoro method.
 
